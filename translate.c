@@ -176,7 +176,7 @@ int main(int argc, char* argv[]) {
     
     // On initialise on fichier qui va conetnir la traduction de langage machine
     FILE* fichierTranlated = NULL;
-    fichierTranlated = fopen("newVersion", "w");
+    fichierTranlated = fopen("newVersion.txt", "w");
     if (fichierTranlated == NULL) {
         return 1;
     }
