@@ -1,6 +1,6 @@
 ici:       in r1, r2
           jzs fin
-        sub r1, r0, r1
-     out r1
+        stb (r1)#32, r0
+     ldb r4, (r5)ici
      jmp ici
 fin: hlt

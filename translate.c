@@ -61,8 +61,8 @@ void traduction(int index, char actualLine[], char allTags[NbLines][NbColons], i
         i++;
     }
    
-    if (i<32) { // Si la commande existe et est trouve on la traduit en binaire
-        translatedLineBin[0] = i;
+    if (i<32) { // Si la commande existe et est trouve on la stocke
+        translatedLineBin[0] = i; // GERER LE CAS OU ON A PAS CETTE COMMANDE MAIS ELLE EST QUAND MEME DANS L'INTERVALLE
         
     } else {
         printf("Error : commande %s n'existe pas\n", command);
@@ -74,10 +74,8 @@ void traduction(int index, char actualLine[], char allTags[NbLines][NbColons], i
     while (actualLine[ind] == ' ') {
         ind++;
     }
-    
     int col = 0; // Indice pour stocker le numero de l'argument qu'on est en train de parcourir
-    while (actualLine[ind] != '\n' && actualLine[ind] != '\0') { // On stocker tous les argument de la ligne actuelle
-        // !!! Gerer le cas ou c'est une valeur immédiate !!!
+    if (translatedLineBin[0] >=10 && translatedLineBin[0] <=11) {
         j = 0; // Indice auxiliaire qui aide a stocker lettre par lettre un parametre qu'on est en train de parcourir
         while (actualLine[ind] != ',' && actualLine[ind] != '\n' && actualLine[ind] != '\0') {
             parameters[col][j] = actualLine[ind];
@@ -88,12 +86,81 @@ void traduction(int index, char actualLine[], char allTags[NbLines][NbColons], i
             ind += 2;
         }
         col++;
+        ind++; // On passe le "("
+        j=0;
+        while (actualLine[ind] != ')') {
+            parameters[col][j] = actualLine[ind];
+            ind++;
+            j++;
+        }
+        col++;
+        ind++; // On passe le ")"
+        j=0;
+        while (actualLine[ind] != '\0' && actualLine[ind] != '\n') {
+            parameters[col][j] = actualLine[ind];
+            ind++;
+            j++;
+        }
+        col++;
+
+        int indiccee = 0;
+        while (indiccee<col) {
+            printf("param : %s\n", parameters[indiccee]);
+            indiccee++;
+        }
     }
-    if (((translatedLineBin[0]>=0 && translatedLineBin[0]<=7) || translatedLineBin[0]==29 || ((translatedLineBin[0]>=10 && translatedLineBin[0]<=13))) && col!=3) {
+    else if (translatedLineBin[0] >=12 && translatedLineBin[0] <=13) { // GERER LE CAS OU LES PARANTHESES SONT AU MAUVAIS ENDROIT ; stb (S)rd, rn
+    // GERER LE CAS OU PLUSIEURS ESPACES SONT ENTRE PARAMETRES!!!!
+        ind++; // On passe le "("
+        j=0;
+        while (actualLine[ind] != ')') {
+            parameters[0][j] = actualLine[ind];
+            ind++;
+            j++;
+        }
+        col++;
+        ind++; // On passe le ")"
+        j=0;
+        while (actualLine[ind] != '\0' && actualLine[ind] != '\n' && actualLine[ind] != ',') {
+            parameters[2][j] = actualLine[ind];
+            ind++;
+            j++;
+        }
+        col++;
+        ind+=2; // On passe les caracteres ", "
+        j = 0; // Indice auxiliaire qui aide a stocker lettre par lettre un parametre qu'on est en train de parcourir
+        while (actualLine[ind] != ',' && actualLine[ind] != '\n' && actualLine[ind] != '\0') {
+            parameters[1][j] = actualLine[ind];
+            ind++;
+            j++;
+        }
+        if (actualLine[ind] != '\n' && actualLine[ind] != '\0') {
+            ind += 2;
+        }
+        col++;
+
+        int indiccee = 0;
+        while (indiccee<col) {
+            printf("param : %s\n", parameters[indiccee]);
+            indiccee++;
+        }
+    } else {
+        while (actualLine[ind] != '\n' && actualLine[ind] != '\0') { // On stocker tous les argument de la ligne actuelle
+            j = 0; // Indice auxiliaire qui aide a stocker lettre par lettre un parametre qu'on est en train de parcourir
+            while (actualLine[ind] != ',' && actualLine[ind] != '\n' && actualLine[ind] != '\0') {
+                parameters[col][j] = actualLine[ind];
+                ind++;
+                j++;
+            }
+            if (actualLine[ind] != '\n' && actualLine[ind] != '\0') {
+                ind += 2;
+            }
+            col++;
+        }
+    }
+
+    if (((translatedLineBin[0]>=10 && translatedLineBin[0]<=13) || (translatedLineBin[0]>=0 && translatedLineBin[0]<=7) || translatedLineBin[0]==29 || ((translatedLineBin[0]>=10 && translatedLineBin[0]<=13))) && col!=3) {
         printf("Error : La commande %s prend 3 parametres\n", command);
-    }
-    if ((translatedLineBin[0]>=10 && translatedLineBin[0]<=13) && col!=2) {
-        printf("Error : La commande %s prend 2 parametres\n", command);
     }
     if ((translatedLineBin[0]>=20 && translatedLineBin[0]<=28) && col!=1) {
         printf("Error : La commande %s prend 1 parametre\n", command);
