@@ -8,21 +8,6 @@
 #define NbColons 200
 #define NbLines 1000
 
-long long int decToBin(int val) {
-    // Fonction pour traduire un nombre decimal en binaire
-    long long int binarynum = 0;
-    long long int rem, temp = 1;
-
-    while (val != 0)
-    {
-        rem = val % 2;
-        val = val / 2;
-        binarynum = binarynum + rem*temp;
-        temp = temp * 10;
-    }
-    return binarynum;
-}
-
 int tagCollect(int index, char actualLine[], char allTags[NbLines][NbColons]) {
     // Fonction qui parcourt la ligne actuelle et stocke les etiquettes trouves dans le tableau "allTags"
     int tagPres=0;
@@ -60,7 +45,7 @@ void traduction(int index, char actualLine[], char allTags[NbLines][NbColons], i
         }
         ind++;
     }
-    while (actualLine[ind] == ' '|| actualLine[ind] == '0' || actualLine[ind] == '1') { // On parcourt la ligne actuelle jusqu'a ce qu'on tombe sur une commande
+    while (actualLine[ind] == ' '|| actualLine[ind] == '0' || actualLine[ind] == '1' || actualLine[ind] == '\t') { // On parcourt la ligne actuelle jusqu'a ce qu'on tombe sur une commande
         ind++;
     }
     char command[10] = ""; // Chaine de caractere qui contient la commande de la ligne actuelle
@@ -75,14 +60,8 @@ void traduction(int index, char actualLine[], char allTags[NbLines][NbColons], i
     while (i < 32 && strcmp(codeOpVals[i], command)) { // la recherche du numero de la commande dans la Collection des commande du code opératoire
         i++;
     }
-    
-    long long int binNb = 0; // Variable temporaire pour stocker l'adresse en binaire des commandes ou parametre
-    
-    
+   
     if (i<32) { // Si la commande existe et est trouve on la traduit en binaire
-        binNb = decToBin(i);
-        printf("Command : %s\n", command);
-        printf(" trad : %lld \n", binNb);
         translatedLineBin[0] = i;
         
     } else {
@@ -110,20 +89,29 @@ void traduction(int index, char actualLine[], char allTags[NbLines][NbColons], i
         }
         col++;
     }
+    if (((translatedLineBin[0]>=0 && translatedLineBin[0]<=7) || translatedLineBin[0]==29 || ((translatedLineBin[0]>=10 && translatedLineBin[0]<=13))) && col!=3) {
+        printf("Error : La commande %s prend 3 parametres\n", command);
+    }
+    if ((translatedLineBin[0]>=10 && translatedLineBin[0]<=13) && col!=2) {
+        printf("Error : La commande %s prend 2 parametres\n", command);
+    }
+    if ((translatedLineBin[0]>=20 && translatedLineBin[0]<=28) && col!=1) {
+        printf("Error : La commande %s prend 1 parametre\n", command);
+    }
+    if (translatedLineBin[0]==31  && col!=0) {
+        printf("Error : La commande %s prend 0 parametres\n", command);
+    }
     // "col" contient le nombre d'arguments
     j = 0; // Le numero d'argument qu'on est en train de parcourir (j<col)
 
     while (j < col) {
-        printf(" parametre : %s\n", parameters[j]);
         int y; // Indice auxiliaire pour comparaison des lettres
         int parNb = 0; // Variable auxiliaire pour recuperer la valeur decimale du numero du parametre ou de l'adrese ou pointe l'etiquette
         int nbAux; // Variable auxiliaire qui aide a calculer la valeur immediate
-        int immPres = 0; // variable indiquant si le parametre est une valeur immediate ou non
         if (parameters[j][0] == '#'){
             if (j!=2) {
                 printf("Error : valeur immediate doit etre passe en 2e source \n");
             }
-            immPres = 1;
             y = 1;
             while ((parameters[j][y] != '\0')) {
                 nbAux = (parameters[j][y] - 48) * pow(10, strlen(parameters[j])- 1 - y);    // convertir le caractere ascii en entier (0 car = 48 en decimal)
@@ -133,9 +121,6 @@ void traduction(int index, char actualLine[], char allTags[NbLines][NbColons], i
             printf(" immediate value translated : %d\n", parNb);
             translatedLineBin[3] = 1;
             translatedLineBin[4] = parNb;
-            binNb = decToBin(parNb);
-            // conversion en binaire ne marche pas
-            printf(" immediate value translated : %lld\n", binNb);
         }
         else if (parameters[j][0]=='r') { // Si l'argument est le registre, on traduit son numero en binaire
             // !!! Gerer le cas ou l'etiquette est sous forme "r..." !!!
@@ -151,12 +136,9 @@ void traduction(int index, char actualLine[], char allTags[NbLines][NbColons], i
                 translatedLineBin[3] = 0;
                 translatedLineBin[4] = parNb;
             }
-            binNb = decToBin(parNb); // Conversion du numero de registre de decimal en binaire
-            if (binNb < 0 || binNb > 11111) {
+            if (parNb < 0 || parNb > 31) {
                 printf("Error : le registre %s n'existe pas\n", parameters[j]);
-            } else {
-                printf(" parametre translated : %lld\n", binNb);
-            }
+            } 
             
         } else { // Si l'argument est une etiquette, on cherche l'adresse ou elle pointe
             i = 0; // Indice auxiliaire qui va indiquer sur l'indice de l'etiquette dans le tableau des etiquettes
@@ -175,17 +157,15 @@ void traduction(int index, char actualLine[], char allTags[NbLines][NbColons], i
             if (equal) {
                 printf("Error : tag %s n'existe pas\n", parameters[j]);
             } else {
-                binNb = decToBin(parNb);
-                translatedLineBin[3] = 0;
+                translatedLineBin[3] = 1;
                 translatedLineBin[4] = parNb;
-                printf(" tag translated : %lld\n", binNb);
             }
         }
         j++;
     }
     int nbAux2 = (translatedLineBin[0]<<27) + (translatedLineBin[1]<<22) + (translatedLineBin[2]<<17) + (translatedLineBin[3]<<16) + translatedLineBin[4];
     printf("Traduction : %x\n", nbAux2);
-    
+
     int indxx = 0;
     while (indxx < 5) {
         printf("%ld\n", translatedLineBin[indxx]);
