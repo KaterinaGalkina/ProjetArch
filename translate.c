@@ -48,6 +48,7 @@ int tagCollect(int index, char actualLine[], char allTags[NbLines][NbColons]) {
             else {
                 allTags[index][ind] = actualLine[ind];
                 ind++;
+                printf("you");
             }
         }
         ind++;
